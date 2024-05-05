@@ -133,7 +133,7 @@ class NeuralNetwork:
             for link in node.incoming_links:
                 # Calculate weight gradient
                 # The gradient for the weight of a link is the gradient of the bias multiplied by the value of the node that the link is coming from
-                gradients[link]['weight'] = gradients[node]['bias'] * link.from_node.value
+                gradients[link]['weight'] = 2 * (node.value - target_values[i]) * link.from_node.value
     
         return gradients
 
