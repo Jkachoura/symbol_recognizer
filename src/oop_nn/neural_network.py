@@ -1,4 +1,5 @@
 import node, link
+import math as m
 
 class NeuralNetwork:
 
@@ -50,6 +51,23 @@ class NeuralNetwork:
                 input_node.outgoing_links.append(new_link)
                 output_node.incoming_links.append(new_link)
 
+    def sigmoid(self, x):
+        return 1 / (1 + m.exp(-x))
+
+    """
+    Apply the softmax activation function to a list of values
+
+    Args:
+        x (list): A list of values
+
+    Returns:
+        list: A list of values after applying the softmax activation function
+    """
+    def softmax(self, x):
+        exp_scores = [m.exp(i) for i in x]
+        sum_exp_scores = sum(exp_scores)
+        return [i / sum_exp_scores for i in exp_scores]
+    
     """
     Perform a forward pass through the neural network
 
@@ -67,13 +85,22 @@ class NeuralNetwork:
                 index = i * len(row) + j  
                 self.nodes[index].value = value
 
-        # Calculate values for all nodes except input nodes
+        # Calculate the sum for all nodes except input nodes
         for node in self.nodes[-self.output_size:]:
-            node.calculate_value()
+            node.value = node.calculate_sum()
+
+        # Apply softmax activation function for output nodes
+        softmax_values = self.softmax([node.value for node in self.nodes[-self.output_size:]])
+        # sigmoid_values = [self.sigmoid(node.value) for node in self.nodes[-self.output_size:]]
+
+        # Update values for output nodes with softmax values
+        for i, node in enumerate(self.nodes[-self.output_size:]):
+            node.value = softmax_values[i]
+            # node.value = sigmoid_values[i]
 
         # Return output values
         return [node.value for node in self.nodes[-self.output_size:]]
-    
+
     """
     Calculate the mean squared error cost for a given input and target values
 
@@ -129,11 +156,14 @@ class NeuralNetwork:
             # Calculate bias gradient
             # The derivative of an activation function is node.value * (1 - node.value)
             # The derivative of the mean squared error cost is 2 * (node.value - target_values[i])
-            gradients[node]['bias'] = 2 * (node.value - target_values[i]) * node.value * (1 - node.value)
+            derivative_mse = 2 * (node.value - target_values[i])
+            derivative_activation = node.value * (1 - node.value)
+            gradients[node]['bias'] = derivative_mse * derivative_activation
             for link in node.incoming_links:
                 # Calculate weight gradient
                 # The gradient for the weight of a link is the gradient of the bias multiplied by the value of the node that the link is coming from
-                gradients[link]['weight'] = 2 * (node.value - target_values[i]) * link.from_node.value
+                derivative_output = link.from_node.value
+                gradients[link]['weight'] = derivative_mse * derivative_output
     
         return gradients
 
@@ -208,6 +238,3 @@ class NeuralNetwork:
                 correct += 1
         accuracy = correct / len(test_set) * 100
         return f'Accuracy: {accuracy}%'
-    
-
-        
