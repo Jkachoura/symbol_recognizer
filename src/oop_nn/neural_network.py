@@ -51,6 +51,15 @@ class NeuralNetwork:
                 input_node.outgoing_links.append(new_link)
                 output_node.incoming_links.append(new_link)
 
+    """
+    Apply the sigmoid activation function to a value
+
+    Args:
+        x (float): A value
+
+    Returns:
+        float: The value after applying the sigmoid activation function
+    """
     def sigmoid(self, x):
         return 1 / (1 + m.exp(-x))
 
@@ -98,8 +107,9 @@ class NeuralNetwork:
             node.value = softmax_values[i]
             # node.value = sigmoid_values[i]
 
-        # Return output values
-        return [node.value for node in self.nodes[-self.output_size:]]
+        # Return output values and print them
+        output_values = [node.value for node in self.nodes[-self.output_size:]]
+        return output_values
 
     """
     Calculate the mean squared error cost for a given input and target values
@@ -163,7 +173,7 @@ class NeuralNetwork:
                 # Calculate weight gradient
                 # The gradient for the weight of a link is the gradient of the bias multiplied by the value of the node that the link is coming from
                 derivative_output = link.from_node.value
-                gradients[link]['weight'] = derivative_mse * derivative_output
+                gradients[link]['weight'] = derivative_mse * derivative_output * derivative_activation
     
         return gradients
 
