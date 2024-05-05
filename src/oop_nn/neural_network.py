@@ -9,6 +9,7 @@ class NeuralNetwork:
         self.links = []
         self.create_nodes()
         self.create_links()
+        self.costs = []
 
     def create_nodes(self):
         for i in range(self.input_size):
@@ -83,10 +84,12 @@ class NeuralNetwork:
         for node in self.nodes[-self.output_size:]:
             gradients[node] = {'bias': 0}
 
-        #TODO: Implement backpropagation
+        # Calculate gradients for output nodes
         for i, node in enumerate(self.nodes[-self.output_size:]):
+            # Calculate bias gradient
             gradients[node]['bias'] = (node.value - target_values[i]) * node.value * (1 - node.value)
             for link in node.incoming_links:
+                # Calculate weight gradient
                 gradients[link]['weight'] = gradients[node]['bias'] * link.from_node.value
     
         return gradients
@@ -107,9 +110,10 @@ class NeuralNetwork:
                 gradient = self.back_propagation(input_values, target_values)
                 self.update_wb(learning_rate, gradient)
             cost /= len(training_set)
+            self.costs.append(cost)
             epoch += 1
-        print(f'Cost: {cost}')
-        print(f'Epoch: {epoch}')
+
+        print(f'Epoch: {epoch} Cost: {cost}')
 
     def predict(self, test_set):
         predictions = []

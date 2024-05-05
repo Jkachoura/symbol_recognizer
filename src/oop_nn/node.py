@@ -6,7 +6,7 @@ class Node:
     def __init__(self):
         self.outgoing_links = []
         self.incoming_links = []
-        self.value = 0
+        self.value = 0.0
         self.bias = random.uniform(-1, 1)
 
     def calculate_sum(self):
@@ -17,7 +17,9 @@ class Node:
 
 
     def softmax(self):
-        return m.exp(self.value) / sum([m.exp(link.from_node.value) for link in self.incoming_links])
+        #TODO: Implement softmax function
+        return 0
+
 
     def sigmoid(self):
         return 1 / (1 + m.exp(-self.value))
