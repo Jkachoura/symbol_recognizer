@@ -23,6 +23,9 @@ class NeuralNetwork:
         # Store costs for each epoch
         self.costs = []
 
+        # store accuracies for each epoch
+        self.accuracies = []
+
     
     """
     Create input and output nodes
@@ -125,11 +128,7 @@ class NeuralNetwork:
         # Calculate output values
         output_values = self.forward_pass(input_values)
 
-        if target_values == 'O':
-            target_values = [1, 0]
-        else:
-            target_values = [0, 1]
-        
+        target_values = self.conv_label(target_values)
         # Calculate mean squared error
         squared_error = 0
         for i in range(len(target_values)):
@@ -149,10 +148,7 @@ class NeuralNetwork:
         dict: A dictionary containing the gradients for each link and node
     """
     def back_propagation(self, target_values):
-        if target_values == 'O':
-            target_values = [1, 0]
-        else:
-            target_values = [0, 1]
+        target_values = self.conv_label(target_values)
 
         # Calculate gradients
         gradients = {}
@@ -210,6 +206,8 @@ class NeuralNetwork:
                 self.update_wb(learning_rate, gradient)
             cost /= len(training_set)
             self.costs.append(cost)
+            acuracy = self.accuracy(training_set)
+            self.accuracies.append(acuracy)
             epoch += 1
 
         print(f'Epoch: {epoch} Cost: {cost}')
@@ -243,8 +241,23 @@ class NeuralNetwork:
         predictions = self.predict(test_set)
         correct = 0
         for i in range(len(predictions)):
-            print(f'Prediction: {predictions[i]} Label: {test_set[i][1]}')
+            # print(f'Prediction: {predictions[i]} Label: {test_set[i][1]}')
             if predictions[i] == test_set[i][1]:
                 correct += 1
         accuracy = correct / len(test_set) * 100
         return f'Accuracy: {accuracy}%'
+    
+    """
+    Convert the label to corresponding target values
+
+    Args:
+        label (str): The label to be converted
+
+    Returns:
+        list: The target values for the output nodes
+    """
+    def conv_label(self, label):
+        if label == 'O':
+            return [1, 0]
+        else:
+            return [0, 1]
