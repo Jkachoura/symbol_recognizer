@@ -1,16 +1,17 @@
-import node, link
+import node, link, data as dt
 import math as m
 
 class NeuralNetwork:
 
-    """
-    Initialize the neural network with input and output size
-
-    Args:
-        input_size (int): The number of input nodes
-        output_size (int): The number of output nodes
-    """
     def __init__(self, input_size, output_size):
+        """
+        Initialize the neural network with input and output size
+
+        Args:
+            input_size (int): The number of input nodes
+            output_size (int): The number of output nodes
+        """
+        
         self.input_size = input_size
         self.output_size = output_size
 
@@ -22,21 +23,19 @@ class NeuralNetwork:
 
         # Store costs for each epoch
         self.costs = []
-
-        # store accuracies for each epoch
-        self.accuracies = []
-
     
-    """
-    Create input and output nodes
-    """
+    
     def create_nodes(self):
+        """
+        Create input and output nodes
+        """
         self.nodes.extend([node.Node() for _ in range(self.input_size + self.output_size)])
 
-    """
-    Create links between input and output nodes
-    """
+    
     def create_links(self):
+        """
+        Create links between input and output nodes
+        """
         # Separate input and output nodes
         input_nodes = self.nodes[:self.input_size]
         output_nodes = self.nodes[-self.output_size:]
@@ -54,42 +53,45 @@ class NeuralNetwork:
                 input_node.outgoing_links.append(new_link)
                 output_node.incoming_links.append(new_link)
 
-    """
-    Apply the sigmoid activation function to a value
 
-    Args:
-        x (float): A value
-
-    Returns:
-        float: The value after applying the sigmoid activation function
-    """
     def sigmoid(self, x):
+        """
+        Apply the sigmoid activation function to a value
+
+        Args:
+            x (float): A value
+
+        Returns:
+            float: The value after applying the sigmoid activation function
+        """
         return 1 / (1 + m.exp(-x))
 
-    """
-    Apply the softmax activation function to a list of values
 
-    Args:
-        x (list): A list of values
-
-    Returns:
-        list: A list of values after applying the softmax activation function
-    """
     def softmax(self, x):
+        """
+        Apply the softmax activation function to a list of values
+
+        Args:
+            x (list): A list of values
+
+        Returns:
+            list: A list of values after applying the softmax activation function
+        """
         exp_scores = [m.exp(i) for i in x]
         sum_exp_scores = sum(exp_scores)
         return [i / sum_exp_scores for i in exp_scores]
     
-    """
-    Perform a forward pass through the neural network
-
-    Args:
-        input_values (list): The input values for the input nodes
     
-    Returns:
-        list: The output values for the output nodes
-    """
     def forward_pass(self, input_values):
+        """
+        Perform a forward pass through the neural network
+
+        Args:
+            input_values (list): The input values for the input nodes
+        
+        Returns:
+            list: The output values for the output nodes
+        """
         # Set input values
         for i, row in enumerate(input_values):
             for j, value in enumerate(row):
@@ -114,21 +116,23 @@ class NeuralNetwork:
         output_values = [node.value for node in self.nodes[-self.output_size:]]
         return output_values
 
-    """
-    Calculate the mean squared error cost for a given input and target values
-
-    Args:
-        input_values (list): The input values for the input nodes
-        target_values (list): The target values for the output nodes
-
-    Returns:
-        float: The mean squared error cost
-    """
+   
     def mse_cost(self, input_values, target_values):
+        """
+        Calculate the mean squared error cost for a given input and target values
+
+        Args:
+            input_values (list): The input values for the input nodes
+            target_values (list): The target values for the output nodes
+
+        Returns:
+            float: The mean squared error cost
+        """
         # Calculate output values
         output_values = self.forward_pass(input_values)
 
-        target_values = self.conv_label(target_values)
+        target_values = dt.outputDict[target_values]
+        
         # Calculate mean squared error
         squared_error = 0
         for i in range(len(target_values)):
@@ -138,87 +142,65 @@ class NeuralNetwork:
 
         return mse
     
-    """
-    Perform backpropagation to calculate gradients for weights and biases
 
-    Args:
-        target_values (list): The target values for the output nodes
+    def back_propagation(self, target_values, learning_rate):
+        """
+        Perform backpropagation to update weights and biases
 
-    Returns:
-        dict: A dictionary containing the gradients for each link and node
-    """
-    def back_propagation(self, target_values):
-        target_values = self.conv_label(target_values)
+        Args:
+            target_values (list): The target values for the output nodes
+            learning_rate (float): The learning rate for updating weights and biases
 
-        # Calculate gradients
-        gradients = {}
-        for link in self.links:
-            gradients[link] = {'weight': 0}
-        for node in self.nodes[-self.output_size:]:
-            gradients[node] = {'bias': 0}
+        Returns:
+            None
+        """
+        target_values = dt.outputDict[target_values]
 
-        # Calculate gradients for output nodes
+        # Calculate gradients and update weights and biases
         for i, node in enumerate(self.nodes[-self.output_size:]):
-            # Calculate bias gradient
-            # The derivative of an activation function is node.value * (1 - node.value)
-            # The derivative of the mean squared error cost is 2 * (node.value - target_values[i])
+            # Calculate bias gradient for output nodes
             derivative_mse = 2 * (node.value - target_values[i])
             derivative_activation = node.value * (1 - node.value)
-            gradients[node]['bias'] = derivative_mse * derivative_activation
+            node.bias -= learning_rate * derivative_mse * derivative_activation
+
+            # Update weights for incoming links
             for link in node.incoming_links:
-                # Calculate weight gradient
-                # The gradient for the weight of a link is the gradient of the bias multiplied by the value of the node that the link is coming from
                 derivative_output = link.from_node.value
-                gradients[link]['weight'] = derivative_mse * derivative_output * derivative_activation
-    
-        return gradients
+                link.weight -= learning_rate * derivative_mse * derivative_output * derivative_activation
 
-    """
-    Update the weights and biases of the neural network using the calculated gradients
 
-    Args:
-        learning_rate (float): The learning rate for updating weights and biases
-        gradient (dict): A dictionary containing the gradients for each link and node
-    """
-    def update_wb(self, learning_rate, gradient):
-        for link in self.links:
-            link.weight -= learning_rate * gradient[link]['weight']
-        for node in self.nodes[-self.output_size:]:
-            node.bias -= learning_rate * gradient[node]['bias']
 
-    """
-    Train the neural network using backpropagation
-    
-    Args:
-        training_set (list): A list of tuples containing input and target values
-        max_cost (float): The maximum mean squared error cost
-        learning_rate (float): The learning rate for updating weights and biases
-        
-    """
     def train(self, training_set, max_cost, learning_rate):
+        """
+        Train the neural network using backpropagation
+        
+        Args:
+            training_set (list): A list of tuples containing input and target values
+            max_cost (float): The maximum mean squared error cost
+            learning_rate (float): The learning rate for updating weights and biases
+            
+        """
         cost = max_cost + 1
         epoch = 0   
         while cost > max_cost:
             cost = 0
             for input_values, target_values in training_set:
                 cost += self.mse_cost(input_values, target_values)
-                gradient = self.back_propagation(target_values)
-                self.update_wb(learning_rate, gradient)
+                self.back_propagation(target_values, learning_rate)
             cost /= len(training_set)
             self.costs.append(cost)
-            acuracy = self.accuracy(training_set)
-            self.accuracies.append(acuracy)
             epoch += 1
 
         print(f'Epoch: {epoch} Cost: {cost}')
 
-    """
-    Predict the output values for a given test set
 
-    Args:
-        test_set (list): A list of tuples containing input and target values 
-    """
     def predict(self, test_set):
+        """
+        Predict the output values for a given test set
+
+        Args:
+            test_set (list): A list of tuples containing input and target values 
+        """
         predictions = []
         for input_values, target_values in test_set:
             output_values = self.forward_pass(input_values)
@@ -231,33 +213,18 @@ class NeuralNetwork:
                 predictions.append('X')
         return predictions
     
-    """
-    Calculate the accuracy of the neural network on a given test set
-
-    Args:
-        test_set (list): A list of tuples containing input and target values
-    """
     def accuracy(self, test_set):
+        """
+        Calculate the accuracy of the neural network on a given test set
+
+        Args:
+            test_set (list): A list of tuples containing input and target values
+        """
         predictions = self.predict(test_set)
         correct = 0
         for i in range(len(predictions)):
-            # print(f'Prediction: {predictions[i]} Label: {test_set[i][1]}')
+            print(f'Prediction: {predictions[i]} Label: {test_set[i][1]}')
             if predictions[i] == test_set[i][1]:
                 correct += 1
         accuracy = correct / len(test_set) * 100
         return f'Accuracy: {accuracy}%'
-    
-    """
-    Convert the label to corresponding target values
-
-    Args:
-        label (str): The label to be converted
-
-    Returns:
-        list: The target values for the output nodes
-    """
-    def conv_label(self, label):
-        if label == 'O':
-            return [1, 0]
-        else:
-            return [0, 1]
