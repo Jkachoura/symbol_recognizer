@@ -1,6 +1,6 @@
 inputDim = 9
 hiddenDim = 39
-hiddenDim = 10
+hiddenDim2 = 10
 outputDim = 2
 
 maxCost = 0.01
