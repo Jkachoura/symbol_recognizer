@@ -23,6 +23,8 @@ class NeuralNetwork:
 
         # Store costs for each epoch
         self.costs = []
+
+        self.accuracies = []
     
     
     def create_nodes(self):
@@ -188,10 +190,13 @@ class NeuralNetwork:
                 cost += self.mse_cost(input_values, target_values)
                 self.back_propagation(target_values, learning_rate)
             cost /= len(training_set)
+            accuracy = self.accuracy(training_set)
+            self.accuracies.append(accuracy)
             self.costs.append(cost)
             epoch += 1
 
-        print(f'Epoch: {epoch} Cost: {cost}')
+        self.print_predictions(training_set)
+        print(f'Epoch: {epoch} Cost: {cost} Accuracy: {accuracy}%')
 
 
     def predict(self, test_set):
@@ -223,8 +228,19 @@ class NeuralNetwork:
         predictions = self.predict(test_set)
         correct = 0
         for i in range(len(predictions)):
-            print(f'Prediction: {predictions[i]} Label: {test_set[i][1]}')
             if predictions[i] == test_set[i][1]:
                 correct += 1
         accuracy = correct / len(test_set) * 100
-        return f'Accuracy: {accuracy}%'
+
+        return accuracy
+    
+    def print_predictions(self, test_set):
+        """
+        Print the predictions of the neural network on a given test set
+
+        Args:
+            test_set (list): A list of tuples containing input and target values
+        """
+        predictions = self.predict(test_set)
+        for i in range(len(predictions)):
+            print(f'Prediction: {predictions[i]} Label: {test_set[i][1]}')
