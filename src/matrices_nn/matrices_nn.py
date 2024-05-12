@@ -42,7 +42,7 @@ class NeuralNetwork:
         """
         return 1 / (1 + np.exp(-x))
 
-    def activation_derivative(self, x: np.ndarray) -> np.ndarray:
+    def sigmoid_derivative(self, x: np.ndarray) -> np.ndarray:
         """
         Computes the derivative of the sigmoid activation function.
 
@@ -97,7 +97,7 @@ class NeuralNetwork:
         """
         return np.mean((predictions - labels) ** 2)
 
-    def backpropagation(self, inputs: np.ndarray, predictions: np.ndarray, labels: np.ndarray, learning_rate: float = 0.1):
+    def backpropagation(self, predictions: np.ndarray, labels: np.ndarray, learning_rate: float = 0.1):
         """
         Performs backpropagation to update weights and biases.
 
@@ -108,10 +108,10 @@ class NeuralNetwork:
             learning_rate (float): Learning rate for updating weights and biases.
         """
         output_error = 2 * (predictions - labels)
-        deltas = [output_error * self.activation_derivative(predictions)]
+        deltas = [output_error * self.sigmoid_derivative(predictions)]
         for i in range(self.num_layers - 2, 0, -1):
             error = deltas[-1].dot(self.weights[i].T)
-            delta = error * self.activation_derivative(self.layer_outputs[i])
+            delta = error * self.sigmoid_derivative(self.layer_outputs[i])
             deltas.append(delta)
         deltas.reverse()
 
@@ -131,7 +131,7 @@ class NeuralNetwork:
         """
         for epoch in range(epochs):
             predictions = self.forward_propagation(inputs)
-            self.backpropagation(inputs, predictions, labels, learning_rate)
+            self.backpropagation(predictions, labels, learning_rate)
             cost = self.mean_squared_error(predictions, labels)
             self.costs.append(cost)
             accuracy = self.accuracy(inputs, labels)
