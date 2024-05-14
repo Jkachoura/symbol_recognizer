@@ -106,8 +106,9 @@ class NeuralNetwork:
             labels (ndarray): True labels.
             learning_rate (float): Learning rate for updating weights and biases.
         """
-        output_error = 2 * (predictions - labels)
-        deltas = [output_error * self.sigmoid_derivative(predictions)]
+        mse_derivative = 2 * (predictions - labels)
+        deltas = [mse_derivative * self.sigmoid_derivative(predictions)]
+        # iterate backwards through the network except the input layer
         for i in range(self.num_layers - 2, 0, -1):
             error = deltas[-1].dot(self.weights[i].T)
             delta = error * self.sigmoid_derivative(self.layer_outputs[i])
