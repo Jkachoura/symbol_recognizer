@@ -103,7 +103,6 @@ class NeuralNetwork:
         Performs backpropagation to update weights and biases.
 
         Args:
-            inputs (ndarray): Input data.
             predictions (ndarray): Predicted values.
             labels (ndarray): True labels.
             learning_rate (float): Learning rate for updating weights and biases.
