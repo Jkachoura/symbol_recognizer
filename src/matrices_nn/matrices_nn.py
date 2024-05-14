@@ -130,11 +130,13 @@ class NeuralNetwork:
         """
         for epoch in range(epochs):
             predictions = self.forward_propagation(inputs)
-            self.backpropagation(predictions, labels, learning_rate)
             cost = self.mean_squared_error(predictions, labels)
             self.costs.append(cost)
             accuracy = self.accuracy(inputs, labels)
             self.accuracies.append(accuracy)
+            if cost < dt.maxCost:
+                break
+            self.backpropagation(predictions, labels, learning_rate)
         self.print_predictions(inputs, labels)
         print(f"Cost: {epoch + 1} epochs: {cost} Accuracy: {accuracy}%")
 
