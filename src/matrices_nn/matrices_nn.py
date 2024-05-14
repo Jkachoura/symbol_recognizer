@@ -24,9 +24,10 @@ class NeuralNetwork:
         self.layer_sizes = layer_sizes
         self.num_layers = len(layer_sizes)
 
-        # Initialize weights and biases with random values
+        # Initialize weights between -1 and 1
         self.weights = [np.random.randn(layer_sizes[i], layer_sizes[i+1]) for i in range(self.num_layers - 1)]
-        self.biases = [np.random.randn(1, layer_sizes[i+1]) for i in range(self.num_layers - 1)]
+        # Initialize biases as zeros
+        self.biases = [np.zeros((1, layer_sizes[i])) for i in range(1, self.num_layers)]
         self.costs = []
         self.accuracies = []
 
@@ -136,9 +137,6 @@ class NeuralNetwork:
             self.costs.append(cost)
             accuracy = self.accuracy(inputs, labels)
             self.accuracies.append(accuracy)
-            # Stop training if cost is below the maximum allowed cost
-            if cost < dt.maxCost:
-                break
         self.print_predictions(inputs, labels)
         print(f"Cost: {epoch + 1} epochs: {cost} Accuracy: {accuracy}%")
 
