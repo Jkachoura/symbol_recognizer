@@ -24,10 +24,9 @@ class NeuralNetwork:
         self.layer_sizes = layer_sizes
         self.num_layers = len(layer_sizes)
 
-        # Initialize weights between -1 and 1
-        self.weights = [np.random.randn(layer_sizes[i], layer_sizes[i+1]) for i in range(self.num_layers - 1)]
-        # Initialize biases as zeros
-        self.biases = [np.zeros((1, layer_sizes[i])) for i in range(1, self.num_layers)]
+        # Initialize weights and biases between -1 and 1
+        self.weights = [np.random.uniform(-1, 1, (layer_sizes[i], layer_sizes[i + 1])) for i in range(self.num_layers - 1)]
+        self.biases = [np.random.uniform(-1, 1, (1, layer_sizes[i + 1])) for i in range(self.num_layers - 1)]
         self.costs = []
         self.accuracies = []
 
