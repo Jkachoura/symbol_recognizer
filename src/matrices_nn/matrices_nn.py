@@ -106,18 +106,15 @@ class NeuralNetwork:
             labels (ndarray): True labels.
             learning_rate (float): Learning rate for updating weights and biases.
         """
-        mse_derivative = 2 * (predictions - labels)
-        deltas = [mse_derivative * self.sigmoid_derivative(predictions)]
-        # iterate backwards through the network except the input layer
-        for i in range(self.num_layers - 2, 0, -1):
-            error = deltas[-1].dot(self.weights[i].T)
-            delta = error * self.sigmoid_derivative(self.layer_outputs[i])
-            deltas.append(delta)
-        deltas.reverse()
-
-        for i in range(self.num_layers - 1):
-            self.weights[i] -= learning_rate * self.layer_outputs[i].T.dot(deltas[i])
-            self.biases[i] -= learning_rate * np.sum(deltas[i], axis=0, keepdims=True)
+        output_error = 2 * (predictions - labels) * self.sigmoid_derivative(self.layer_outputs[-1])
+        # Iterate over the layers in reverse order
+        for i in range(self.num_layers - 2, -1, -1):
+            layer_error = np.dot(output_error, self.weights[i].T)
+            weight_gradient = np.dot(self.layer_outputs[i].T, output_error)
+            bias_gradient = np.sum(output_error, axis=0)
+            self.weights[i] -= learning_rate * weight_gradient
+            self.biases[i] -= learning_rate * bias_gradient
+            output_error = layer_error
 
     def train(self, inputs: np.ndarray, labels: np.ndarray, epochs: int = 1000, learning_rate: float = 0.1):
         """
