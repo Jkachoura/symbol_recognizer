@@ -54,19 +54,6 @@ class NeuralNetwork:
         """
         return self.sigmoid(x) * (1 - self.sigmoid(x))
 
-    def softmax(self, x: np.ndarray) -> np.ndarray:
-        """
-        Computes the softmax function for the input data.
-
-        Args:
-            x (ndarray): Input data.
-
-        Returns:
-            ndarray: Output after applying the softmax function.
-        """
-        exps = np.exp(x - np.max(x, axis=1, keepdims=True))
-        return exps / np.sum(exps, axis=1, keepdims=True)
-
     def forward_propagation(self, inputs: np.ndarray) -> np.ndarray:
         """
         Performs forward propagation through the network.
@@ -106,14 +93,25 @@ class NeuralNetwork:
             labels (ndarray): True labels.
             learning_rate (float): Learning rate for updating weights and biases.
         """
+        # Calculate the error for the output layer with chain rule applied to the derivative of the sigmoid function and the mean squared error.
         output_error = 2 * (predictions - labels) * self.sigmoid_derivative(self.layer_outputs[-1])
+        
         # Iterate over the layers in reverse order
         for i in range(self.num_layers - 2, -1, -1):
+            # Calculate the error for the current layer
             layer_error = np.dot(output_error, self.weights[i].T)
+
+            # Calculate the gradient of the loss with respect to the weights
             weight_gradient = np.dot(self.layer_outputs[i].T, output_error)
+
+            # Calculate the gradient of the loss with respect to the biases
             bias_gradient = np.sum(output_error, axis=0)
+
+            # Update the weights and biases
             self.weights[i] -= learning_rate * weight_gradient
             self.biases[i] -= learning_rate * bias_gradient
+            
+            # Update the error for the next iteration
             output_error = layer_error
 
     def train(self, inputs: np.ndarray, labels: np.ndarray, epochs: int = 1000, learning_rate: float = 0.1):
