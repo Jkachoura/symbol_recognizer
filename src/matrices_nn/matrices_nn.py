@@ -134,7 +134,7 @@ class NeuralNetwork:
                 break
             self.backpropagation(predictions, labels, learning_rate)
         self.print_predictions(inputs, labels)
-        print(f"Cost: {epoch + 1} epochs: {cost} Accuracy: {accuracy}%")
+        print(f"Cost: {cost} epochs: {epoch + 1} Accuracy: {accuracy}%")
 
 
     def predict(self, inputs: np.ndarray) -> np.ndarray:
